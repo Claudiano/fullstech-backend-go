@@ -1,4 +1,4 @@
-package entities
+package models
 
 type Trabalho struct {
 	Id    string

@@ -1,4 +1,4 @@
-package entities
+package models
 
 type Lembrete struct {
 	Id       string
