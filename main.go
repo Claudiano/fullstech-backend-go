@@ -1,11 +1,9 @@
 package main
 
-import (
-	"fmt"
-)
+import "fullstech-backend-go/routes"
 
 func main() {
 
-	fmt.Println("Hello world")
+	routes.InitServer()
 
 }

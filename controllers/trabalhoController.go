@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"fullstech-backend-go/models"
 	"fullstech-backend-go/services"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -14,11 +17,24 @@ type TrabalhoController struct{}
 var trabalhoService services.TrabalhoService
 
 func (TrabalhoController) GetAllTrabalho(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", trabalhoService.GetAllTrabalhos())
+	trabalhos := trabalhoService.GetAllTrabalhos()
+
+	message, _ := json.Marshal(trabalhos)
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Write(message)
 }
 
 func (TrabalhoController) PostTrabalho(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", trabalhoService.SaveTrabalho())
+	var trabalho models.Trabalho
+
+	err := json.NewDecoder(r.Body).Decode(&trabalho)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+
+		fmt.Fprintf(w, "%s", trabalhoService.SaveTrabalho(trabalho))
+	}
 
 }
 
