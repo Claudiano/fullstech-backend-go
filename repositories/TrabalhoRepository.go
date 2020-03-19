@@ -2,12 +2,11 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 	"fullstech-backend-go/models"
 	"log"
-	"strconv"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -17,21 +16,16 @@ func (TrabalhoRepository) FindAllTrabalhos() []models.Trabalho {
 	trabalhos := []models.Trabalho{}
 	db := connectDb()
 
-	// Pass these options to the Find method
 	findOptions := options.Find()
 	findOptions.SetLimit(2)
 
-	// Passing bson.D{{}} as the filter matches all documents in the collection
 	cur, err := db.Collection("trabalhos").Find(context.TODO(), bson.D{{}}, findOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Finding multiple documents returns a cursor
-	// Iterating through the cursor allows us to decode documents one at a time
 	for cur.Next(context.TODO()) {
 
-		// create a value into which the single document can be decoded
 		var elem models.Trabalho
 		err := cur.Decode(&elem)
 		if err != nil {
@@ -45,13 +39,12 @@ func (TrabalhoRepository) FindAllTrabalhos() []models.Trabalho {
 		log.Fatal(err)
 	}
 
-	// Close the cursor once finished
 	cur.Close(context.TODO())
 
 	return trabalhos
 }
 
-func (TrabalhoRepository) Save(trabalho models.Trabalho) string {
+func (TrabalhoRepository) Save(trabalho models.Trabalho) interface{} {
 	db := connectDb()
 
 	insertedResult, err := db.Collection("trabalhos").InsertOne(context.TODO(), trabalho)
@@ -59,9 +52,24 @@ func (TrabalhoRepository) Save(trabalho models.Trabalho) string {
 		panic(err)
 	}
 
-	return fmt.Sprintln("Usuario salvo com id: ", insertedResult.InsertedID)
+	return insertedResult.InsertedID
 }
 
-func (TrabalhoRepository) Delete(id int64) string {
-	return "exclui um trabalho, com  id = " + strconv.FormatInt(id, 10)
+func (TrabalhoRepository) Delete(id string) interface{} {
+
+	db := connectDb()
+
+	idPrimitive, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	filter := bson.M{"_id": idPrimitive}
+
+	deleteResult, err := db.Collection("trabalhos").DeleteOne(context.TODO(), filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return deleteResult
 }

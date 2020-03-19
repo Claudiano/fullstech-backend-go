@@ -1,10 +1,12 @@
 package controllers
 
 import (
-	"fmt"
+	"encoding/json"
+	"fullstech-backend-go/models"
 	"fullstech-backend-go/services"
+	"fullstech-backend-go/utils"
+	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi"
 )
@@ -14,18 +16,33 @@ type LembreteController struct{}
 var lembreteService services.LembreteService
 
 func (LembreteController) GetAllLembrete(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", lembreteService.GetAllLembretes())
+	response := lembreteService.GetAllLembretes()
+
+	utils.GetResponse(w, response)
+
 }
 
 func (LembreteController) PostLembrete(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", lembreteService.SaveTrabalho())
+	var lembrete models.Lembrete
+
+	err := json.NewDecoder(r.Body).Decode(&lembrete)
+	if err != nil {
+		log.Fatal(err)
+		utils.GetErrorResponse(err, w)
+	} else {
+
+		response := lembreteService.SaveLembrete(lembrete)
+
+		utils.GetResponse(w, map[string]interface{}{"message": response})
+	}
 
 }
 
 func (LembreteController) DeleteLembrete(w http.ResponseWriter, r *http.Request) {
 
-	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	id := chi.URLParam(r, "id")
+	response := lembreteService.DeleteLembrete(id)
 
-	fmt.Fprintf(w, "%s", lembreteService.DeleteTrabalho(id))
+	utils.GetResponse(w, map[string]interface{}{"message": response})
 
 }

@@ -2,12 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"fullstech-backend-go/models"
 	"fullstech-backend-go/services"
+	"fullstech-backend-go/utils"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi"
 )
@@ -17,12 +16,9 @@ type TrabalhoController struct{}
 var trabalhoService services.TrabalhoService
 
 func (TrabalhoController) GetAllTrabalho(w http.ResponseWriter, r *http.Request) {
-	trabalhos := trabalhoService.GetAllTrabalhos()
+	response := trabalhoService.GetAllTrabalhos()
 
-	message, _ := json.Marshal(trabalhos)
-
-	w.WriteHeader(http.StatusAccepted)
-	w.Write(message)
+	utils.GetResponse(w, response)
 }
 
 func (TrabalhoController) PostTrabalho(w http.ResponseWriter, r *http.Request) {
@@ -31,17 +27,21 @@ func (TrabalhoController) PostTrabalho(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&trabalho)
 	if err != nil {
 		log.Fatal(err)
+		utils.GetErrorResponse(err, w)
 	} else {
 
-		fmt.Fprintf(w, "%s", trabalhoService.SaveTrabalho(trabalho))
+		response := trabalhoService.SaveTrabalho(trabalho)
+
+		utils.GetResponse(w, map[string]interface{}{"message": response})
 	}
 
 }
 
 func (TrabalhoController) DeleteTrabalho(w http.ResponseWriter, r *http.Request) {
 
-	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	id := chi.URLParam(r, "id")
+	response := trabalhoService.DeleteTrabalho(id)
 
-	fmt.Fprintf(w, "%s", trabalhoService.DeleteTrabalho(id))
+	utils.GetResponse(w, map[string]interface{}{"message": response})
 
 }
